@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="layouts/admin-template.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Users</title>
+</head>
+<body>
+<div layout:fragment="siteContent">
+    <div class="row">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="white-box">
+                        <div class="table-responsive">
+                            <table class="table text-nowrap">
+                                <thead>
+                                <tr>
+                                    <th class="border-top-0">#</th>
+                                    <th class="border-top-0">Полное Имя</th>
+                                    <th class="border-top-0">Почта</th>
+                                    <th class="border-top-0">Роли</th>
+                                    <th class="border-top-0">Детали</th>
+                                </tr>
+                                </thead>
+                                <tbody id="contentBody">
+
+                                </tbody>
+                            </table>
+                            <div class="modal fade" id="detailsModal" data-bs-backdrop="static"
+                                 data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
+                                 aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="staticBackdropLabel">Детали Пользователя</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row mt-3">
+                                                <div class="col">
+                                                    <label for="fullNameDetails">Полное Имя :</label>
+                                                </div>
+                                                <input readonly type="hidden" id="idDetails">
+                                            </div>
+                                            <div class="row mt-1">
+                                                <div class="col">
+                                                    <input type="text" class="form-control" name="name"
+                                                           id="fullNameDetails">
+                                                </div>
+                                            </div>
+                                            <div class="row mt-3">
+                                                <div class="col">
+                                                    <label for="emailDetails">Email Почта :</label>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-1">
+                                                <div class="col">
+                                                    <input readonly type="text" class="form-control" name="emailDetails"
+                                                           id="emailDetails">
+                                                </div>
+                                            </div>
+                                            <div class="row mt-3">
+                                                <div class="col">
+                                                    <label for="permissionsDetails">Доступ :</label>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-1">
+                                                <div class="col">
+                                                    <select class="form-select" id="permissionsDetails">
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-danger" onclick="deleteUser()">
+                                                Удалить
+                                            </button>
+                                            <button type="button" class="btn btn-primary" onclick="updateUser()">
+                                                Сохранить
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            loadUsers()
+            loadPermissions();
+            var detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'))
+
+
+            function loadUsers() {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("GET", "/users", true);
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState == XMLHttpRequest.DONE && httRequest.status == 200) {
+                        let usersList = JSON.parse(httRequest.responseText);
+                        let tableContent = '';
+                        for (let i = 0; i < usersList.length; i++) {
+                            tableContent += '<tr>';
+                            tableContent += '<td>' + usersList[i].id + '</td>';
+                            tableContent += '<td>' + usersList[i].fullName + '</td>';
+                            tableContent += '<td>' + usersList[i].email + '</td>';
+                            tableContent += '<td>';
+                            for (let j = 0; j < usersList[i].permissions.length; j++) {
+                                tableContent += ' ' + usersList[i].permissions[j].name + ' '
+                            }
+                            tableContent += '</td>';
+                            tableContent += '<td><button class="btn btn-primary" onclick="openUsersDetails(' + usersList[i].id + ')">Детали</button></td>';
+                            tableContent += '</tr>';
+                        }
+                        document.getElementById("contentBody").innerHTML = tableContent;
+                    }
+                }
+                httRequest.send();
+            }
+            function loadPermissions() {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("GET", "/permissions", true);
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        let permissions = JSON.parse(httRequest.responseText);
+                        let permissionsSelect = '';
+                        for (let i = 0; i < permissions.length; i++) {
+                            permissionsSelect += '<option value="'+permissions[i].id+'">'+ permissions[i].name +'</option>';
+                        }
+                        document.getElementById("permissionsDetails").innerHTML = permissionsSelect;
+                    }
+                }
+                httRequest.send();
+            }
+            function openUsersDetails(id) {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("GET", "/users/" + id, true);
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        let result = JSON.parse(httRequest.responseText);
+                        idDetails.value = result.id;
+                        fullNameDetails.value = result.fullName;
+                        emailDetails.value = result.email;
+                        let userPermissions = result.permissions;
+                        let permissionsSelect = document.getElementById("permissionsDetails");
+                        for (let i = 0; i < userPermissions.length; i++) {
+                            for (let j = 0; j < permissionsSelect.options.length; j++){
+                                if (permissionsSelect.options[j].value === userPermissions[i].id.toString()) {
+                                    permissionsSelect.options[j].setAttribute("selected", "selected");
+                                } else {
+                                    permissionsSelect.options[j].removeAttribute("selected");
+                                }
+
+                            }
+                        }
+                        detailsModal.show();
+                    }
+                };
+                httRequest.send();
+            }
+            function updateUser() {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("PUT", "/users/update", true);
+                httRequest.setRequestHeader("Content-Type", "application/json");
+                let id = document.getElementById("idDetails").value;
+                let fullName = document.getElementById("fullNameDetails").value;
+                let email = document.getElementById("emailDetails").value;
+                let permission = document.getElementById("permissionsDetails");
+                let body = {
+                    'id': id,
+                    'fullName': fullName,
+                    'email': email,
+                    'permissions': [
+                        {
+                            "id": permission.value,
+                            "name": permission.textContent
+                        }
+                    ]
+                };
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        loadUsers();
+                    }
+                };
+
+                body = JSON.stringify(body);
+                httRequest.send(body);
+                detailsModal.hide();
+
+
+            }
+            function deleteUser() {
+                let id = document.getElementById("idDetails").value;
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("DELETE", "/users/delete/" + id, true);
+                httRequest.setRequestHeader("Content-Type", "application/json");
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        loadUsers();
+                        detailsModal.hide();
+                    }
+                };
+                httRequest.send();
+            }
+
+        </script>
+    </div>
+</body>
+</html>

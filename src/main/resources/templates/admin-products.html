@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="layouts/admin-template.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+</head>
+<body>
+<div layout:fragment="siteContent">
+    <div class="row">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="white-box">
+                        <div class="table-responsive">
+                            <table class="table text-nowrap">
+                                <thead>
+                                <tr>
+                                    <th class="border-top-0">#</th>
+                                    <th class="border-top-0">Название</th>
+                                    <th class="border-top-0">Категория</th>
+                                    <th class="border-top-0">Цена</th>
+                                    <th class="border-top-0">Детали</th>
+                                </tr>
+                                </thead>
+                                <tbody id="contentBody">
+
+                                </tbody>
+                            </table>
+                            <div class="modal fade" id="detailsModal" data-bs-backdrop="static"
+                                 data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
+                                 aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="staticBackdropLabel">Детали продукта</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row mt-3">
+                                                <div class="col">
+                                                    <label for="nameDetails">Название :</label>
+                                                </div>
+                                                <input type="hidden" id="idDetails">
+                                            </div>
+                                            <div class="row mt-1">
+                                                <div class="col">
+                                                    <input type="text" class="form-control" name="name"
+                                                           id="nameDetails">
+                                                </div>
+                                            </div>
+                                            <div class="row mt-3">
+                                                <div class="col">
+                                                    <label for="descriptionDetails">Описание :</label>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-1">
+                                                <div class="col">
+                                                    <input type="text" class="form-control" name="description"
+                                                           id="descriptionDetails">
+                                                </div>
+                                            </div>
+                                            <div class="row mt-3">
+                                                <div class="col">
+                                                    <label for="priceDetails">Цена :</label>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-1">
+                                                <div class="col">
+                                                    <input type="number" class="form-control" name="price"
+                                                           id="priceDetails">
+                                                </div>
+                                            </div>
+                                            <div class="row mt-3">
+                                                <div class="col">
+                                                    <label for="categoryDetails">Категория :</label>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-1">
+                                                <div class="col">
+                                                    <select class="form-select" id="categoryDetails">
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-danger" onclick="deleteProduct()">
+                                                Удалить
+                                            </button>
+                                            <button type="button" class="btn btn-primary" onclick="updateProduct()">
+                                                Сохранить
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            loadProducts()
+            loadCategories()
+
+            var detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'))
+
+            function deleteProduct() {
+                let productId = document.getElementById("idDetails").value;
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("DELETE", "/products/delete/" + productId, true);
+                httRequest.setRequestHeader("Content-Type", "application/json");
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        loadProducts();
+                        detailsModal.hide();
+                    }
+                };
+                httRequest.send();
+            }
+
+
+            function loadProducts() {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("GET", "/products", true);
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState == XMLHttpRequest.DONE && httRequest.status == 200) {
+                        let productList = JSON.parse(httRequest.responseText);
+                        let cardContent = '';
+                        for (let i = 0; i < productList.length; i++) {
+                            cardContent += '<tr>';
+                            cardContent += '<td>' + productList[i].id + '</td>';
+                            cardContent += '<td>' + productList[i].name + '</td>';
+                            cardContent += '<td>' + productList[i].category.name + '</td>';
+                            cardContent += '<td>' + productList[i].price + '</td>';
+                            cardContent += '<td><button class="btn btn-primary" onclick="openProductDetails(' + productList[i].id + ')">Детали</button></td>';
+                            cardContent += '</tr>';
+                        }
+                        document.getElementById("contentBody").innerHTML = cardContent;
+                    }
+                }
+                httRequest.send();
+            }
+
+            function loadCategories() {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("GET", "/categories", true);
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState == XMLHttpRequest.DONE && httRequest.status == 200) {
+                        let categories = JSON.parse(httRequest.responseText);
+                        let categoriesSelect = '';
+                        for (let i = 0; i < categories.length; i++) {
+                            categoriesSelect += '<option value="' + categories[i].id + '">' + categories[i].name + '</option>';
+                        }
+                        document.getElementById("categoryDetails").innerHTML = categoriesSelect;
+                    }
+                }
+                httRequest.send();
+            }
+
+            function updateProduct() {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("PUT", "/products/update", true);
+                httRequest.setRequestHeader("Content-Type", "application/json");
+                let productId = document.getElementById("idDetails").value;
+                let productName = document.getElementById("nameDetails").value;
+                let productDescription = document.getElementById("descriptionDetails").value;
+                let productPrice = document.getElementById("priceDetails").value;
+                let productCategory = document.getElementById("categoryDetails");
+                let body = {
+                    'id': productId,
+                    'name': productName,
+                    'description': productDescription,
+                    'price': productPrice,
+                    'category': {
+                        "id": productCategory.value,
+                        "name": productCategory.textContent
+                    }
+                };
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        loadProducts();
+                    }
+                };
+
+                body = JSON.stringify(body);
+                httRequest.send(body);
+                detailsModal.hide();
+
+
+            }
+
+            function openProductDetails(id) {
+
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("GET", "/products/" + id, true);
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        let result = JSON.parse(httRequest.responseText);
+                        idDetails.value = result.id;
+                        nameDetails.value = result.name;
+                        descriptionDetails.value = result.description;
+                        priceDetails.value = result.price;
+
+                        let categorySelect = document.getElementById("categoryDetails");
+                        for (let i = 0; i < categorySelect.options.length; i++) {
+                            if (categorySelect.options[i].value === result.category.id.toString()) {
+                                categorySelect.options[i].setAttribute("selected", "selected");
+                            } else {
+                                categorySelect.options[i].removeAttribute("selected");
+                            }
+                        }
+                    }
+                }
+                httRequest.send();
+                // var detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'))
+                detailsModal.show();
+            }
+
+        </script>
+    </div>
+</body>
+</html>

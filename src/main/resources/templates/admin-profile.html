@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="layouts/admin-template.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+</head>
+<body>
+<div layout:fragment="siteContent">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-5">
+                <div class="white-box">
+                    <div class="user-bg"><img width="100%" alt="user" th:src="@{'/images/unnamed.png'}">
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-7">
+                <div class="card">
+                    <div class="card-body">
+                        <form class="form-horizontal form-material">
+                            <div class="form-group mb-4">
+                                <label for="update-full-name" class="col-md-12 p-0">Полное Имя</label>
+                                <div class="col-md-12 border-bottom p-0">
+                                    <input type="text" th:value="${#authentication.principal.fullName}"
+                                           class="form-control p-0 border-0" id="update-full-name"></div>
+                            </div>
+                            <div class="form-group mb-4">
+                                <label for="update-email" class="col-md-12 p-0">Email Почта</label>
+                                <div class="col-md-12 border-bottom p-0">
+                                    <input type="email" th:value="${#authentication.principal.email}"
+                                           class="form-control p-0 border-0" name="update-email"
+                                           id="update-email">
+                                </div>
+                            </div>
+                            <div class="form-group mb-4">
+                                <div class="col-sm-12">
+                                    <button class="btn btn-success" onclick="addProduct()">Обновить Профиль</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

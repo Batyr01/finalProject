@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="layouts/base.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+</head>
+<body>
+<div layout:fragment="siteContent">
+    <div class="row" id="contentBody">
+
+    </div>
+    <script type="text/javascript">
+
+        loadProducts()
+
+        function loadProducts() {
+            const httRequest = new XMLHttpRequest();
+            httRequest.open("GET", "/products", true);
+            httRequest.onreadystatechange = function () {
+                if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                    let productList = JSON.parse(httRequest.responseText);
+                    let cardContent = '';
+
+                    for (let i = 0; i < productList.length; i++) {
+                        if (i % 3 === 0) {
+                            cardContent += '<div class="row">';
+                        }
+                        cardContent += '<div class="card col-4 mx-auto mb-2 mt-2" style="width: 18rem;">';
+                        cardContent += '<img src="..." class="card-img-top" alt="...">';
+                        cardContent += '<div class="card-body">';
+                        cardContent += '<h5 class="card-title" id="productName">' + productList[i].name + '</h5>';
+                        cardContent += '<p class="card-text" id="productPrice">' + productList[i].price + ' KZT</p>';
+                        cardContent += '<div class="row">';
+                        cardContent += '<div class="col-6">';
+                        let productId = productList[i].id;
+                        let productURL = '/product/' + productId;
+                        cardContent += '<a href="' + productURL + '" class="btn btn-primary">Подробнее</a>';
+                        cardContent += '</div>';
+                        cardContent += '</div>';
+                        cardContent += '</div>';
+                        cardContent += '</div>';
+                        if ((i + 1) % 3 === 0 || i === productList.length - 1) {
+                            cardContent += '</div>';
+                        }
+                    }
+                    document.getElementById("contentBody").innerHTML = cardContent;
+                }
+            }
+            httRequest.send();
+        }
+    </script>
+</div>
+</body>
+</html>

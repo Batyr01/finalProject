@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="layouts/base.html"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Details</title>
+</head>
+<body>
+<div layout:fragment="siteContent">
+    <div class="card">
+        <h5 class="card-header">
+            <button onclick="openProductDetails()" class="btn btn-primary" sec:authorize="isAuthenticated()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                     class="bi bi-cart-fill" viewBox="0 0 16 16">
+                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                </svg>
+            </button>
+        </h5>
+        <div class="card-body">
+            <h5 class="card-title" th:text="${product.name}"></h5>
+            <p class="card-text" th:text="${product.description}"></p>
+            <a href="#" class="btn btn-primary" th:text="${product.price}"></a>
+            <input type="hidden" id="productId" th:value="${product.id}">
+        </div>
+    </div>
+    <div class="modal fade" id="detailsModal" data-bs-backdrop="static"
+         data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Детали продукта</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mt-3">
+                        <div class="col">
+                            <label for="nameProduct">Название :</label>
+                        </div>
+                        <input type="hidden" id="idDetails">
+                    </div>
+                    <div class="row mt-1">
+                        <div class="col">
+                            <input readonly type="text" class="form-control" name="name"
+                                   id="nameProduct">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col">
+                            <label for="productPrice">Цена :</label>
+                        </div>
+                    </div>
+                    <div class="row mt-1">
+                        <div class="col">
+                            <input readonly type="number" class="form-control" name="price"
+                                   id="productPrice">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col">
+                            <label for="quantity">Количество :</label>
+                        </div>
+                    </div>
+                    <div class="row mt-1">
+                        <div class="col">
+                            <input type="number" class="form-control" name="quantity"
+                                   id="quantity" value="1" min="1">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="addProduct()">
+                        Добавить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        let currentUser;
+        let product;
+        var detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'))
+
+        function getCurrentUser() {
+            const httRequest = new XMLHttpRequest();
+            httRequest.open("GET", "/user", true);
+            httRequest.setRequestHeader("Content-Type", "application/json");
+            httRequest.onreadystatechange = function () {
+                if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                    currentUser = JSON.parse(httRequest.responseText);
+                }
+            };
+            httRequest.send();
+
+        }
+
+        function consoleLog() {
+            console.log(currentUser)
+        }
+
+        function addProduct() {
+            const httRequest = new XMLHttpRequest();
+            httRequest.open("POST", "/cart", true);
+            httRequest.setRequestHeader("Content-Type", "application/json");
+            let quantity = document.getElementById("quantity").value
+            let body = {
+                "user": {
+                    "id": currentUser.id,
+                    "email": currentUser.email,
+                    "fullName": currentUser.fullName,
+                    "permissions": [
+                        {
+                            "id": currentUser.permissions[0].id,
+                            "name": currentUser.permissions[0].name
+                        }
+                    ]
+                },
+                "product": {
+                    "id": product.id,
+                    "name": product.name,
+                    "description": product.description,
+                    "price": product.price,
+                    "category": {
+                        "id": product.category.id,
+                        "name": product.category.name
+                    }
+                },
+                "quantity": quantity,
+                "status": 0
+            }
+            httRequest.onreadystatechange = function () {
+                if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+
+                }
+            };
+            body = JSON.stringify(body);
+            httRequest.send(body);
+            detailsModal.hide();
+
+        }
+
+        function openProductDetails() {
+            let productId = document.getElementById("productId").value;
+            let productName = document.getElementById("nameProduct")
+            let price = document.getElementById("productPrice")
+            const httRequest = new XMLHttpRequest();
+            httRequest.open("GET", "/products/" + productId, true);
+            httRequest.onreadystatechange = function () {
+                if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                    let result = JSON.parse(httRequest.responseText);
+                    getCurrentUser()
+                    product = result;
+                    productName.value = result.name;
+                    price.value = result.price;
+                }
+            }
+            httRequest.send();
+            detailsModal.show();
+        }
+    </script>
+</div>
+</body>
+</html>

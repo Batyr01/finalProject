@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="layouts/admin-template.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Categories</title>
+</head>
+<body>
+<div layout:fragment="siteContent">
+    <div class="row">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="row mt-3">
+                        <div class="col">
+                            <label for="name">Название :</label>
+                        </div>
+                    </div>
+                    <div class="row mt-1">
+                        <div class="col">
+                            <input type="text" class="form-control" name="name" id="name">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col">
+                            <button class="btn btn-primary" onclick="addCategory()">Добавить</button>
+                        </div>
+                    </div>
+                    <div class="white-box">
+                        <div class="table-responsive">
+                            <table class="table text-nowrap">
+                                <thead>
+                                <tr>
+                                    <th class="border-top-0">#</th>
+                                    <th class="border-top-0">Название</th>
+                                    <th class="border-top-0">Детали</th>
+                                </tr>
+                                </thead>
+                                <tbody id="contentBody">
+
+                                </tbody>
+                            </table>
+                            <div class="modal fade" id="detailsModal" data-bs-backdrop="static"
+                                 data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
+                                 aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="staticBackdropLabel">Детали категорий</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row mt-3">
+                                                <div class="col">
+                                                    <label for="nameDetails">Название :</label>
+                                                </div>
+                                                <input type="hidden" id="idDetails">
+                                            </div>
+                                            <div class="row mt-1">
+                                                <div class="col">
+                                                    <input type="text" class="form-control" name="name"
+                                                           id="nameDetails">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-danger" onclick="deleteCategory()">
+                                                Удалить
+                                            </button>
+                                            <button type="button" class="btn btn-primary" onclick="updateCategory()">
+                                                Сохранить
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            loadCategories()
+
+            var detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'))
+
+            function addCategory() {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("POST", "/categories", true);
+                httRequest.setRequestHeader("Content-Type", "application/json");
+                let categoryName = document.getElementById("name").value;
+                let body = {
+                    'name': categoryName
+                };
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        document.getElementById("name").value = "";
+                        loadCategories();
+                    }
+                };
+
+                body = JSON.stringify(body);
+                httRequest.send(body);
+
+            }
+
+            function deleteCategory() {
+                let productId = document.getElementById("idDetails").value;
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("DELETE", "/categories/delete/" + productId, true);
+                httRequest.setRequestHeader("Content-Type", "application/json");
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        loadCategories();
+                        detailsModal.hide();
+                    }
+                };
+                httRequest.send();
+            }
+
+            function loadCategories() {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("GET", "/categories", true);
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState == XMLHttpRequest.DONE && httRequest.status == 200) {
+                        let categoriesList = JSON.parse(httRequest.responseText);
+                        let cardContent = '';
+                        for (let i = 0; i < categoriesList.length; i++) {
+                            cardContent += '<tr>';
+                            cardContent += '<td>' + categoriesList[i].id + '</td>';
+                            cardContent += '<td>' + categoriesList[i].name + '</td>';
+                            cardContent += '<td><button class="btn btn-primary" onclick="openCategoryDetails(' + categoriesList[i].id + ')">Детали</button></td>';
+                            cardContent += '</tr>';
+                        }
+                        document.getElementById("contentBody").innerHTML = cardContent;
+                    }
+                }
+                httRequest.send();
+            }
+
+            function updateCategory() {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("PUT", "/categories/update", true);
+                httRequest.setRequestHeader("Content-Type", "application/json");
+                let categoryId = document.getElementById("idDetails").value;
+                let categoryName = document.getElementById("nameDetails").value;
+                let body = {
+                    'id': categoryId,
+                    'name': categoryName
+                };
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        loadCategories();
+                    }
+                };
+
+                body = JSON.stringify(body);
+                httRequest.send(body);
+                detailsModal.hide();
+
+
+            }
+
+            function openCategoryDetails(id) {
+
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("GET", "/categories/" + id, true);
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        let result = JSON.parse(httRequest.responseText);
+                        idDetails.value = result.id;
+                        nameDetails.value = result.name
+                    }
+                }
+                httRequest.send();
+                detailsModal.show();
+            }
+
+        </script>
+    </div>
+</body>
+</html>

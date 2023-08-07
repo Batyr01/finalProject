@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="layouts/base.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div layout:fragment="siteContent">
+    <div class="row">
+        <div class="col-4 mx-auto mt-5">
+            <div class="alert alert-danger" role="alert" th:if="${param.passworderror != null}">
+                Пароли не совпадают!
+            </div>
+            <div class="alert alert-danger" role="alert" th:if="${param.emailerror != null}">
+                Почта занята!
+            </div>
+            <div class="alert alert-success" role="alert" th:if="${param.success != null}">
+                Вы успешно Зарегистрировались!
+            </div>
+            <form method="post" th:action="@{'/to-sign-up'}" class="mx-auto">
+                <div class="row mt-3">
+                    <div class="col">
+                        <label for="user_full_name">Полное Имя :</label>
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="col">
+                        <input placeholder="Полное Имя" type="text" class="form-control" name="user_full_name" id="user_full_name">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col">
+                        <label for="user_email">Email Почта :</label>
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="col">
+                        <input placeholder="Email Почта" type="text" class="form-control" name="user_email" id="user_email">
+                    </div>
+                </div>
+                <div class="row mt-3" >
+                    <div class="col">
+                        <label for="user_password">Пароль :</label>
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="col">
+                        <input type="password" class="form-control" name="user_password" id="user_password">
+                    </div>
+                </div>
+                <div class="row mt-3" >
+                    <div class="col">
+                        <label for="user_re_password">Повторите Пароль :</label>
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="col">
+                        <input type="password" class="form-control" name="user_re_password" id="user_re_password">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col">
+                        <button class="btn btn-primary" type="submit">Регистрация</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

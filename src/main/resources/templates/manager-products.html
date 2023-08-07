@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="layouts/manager-template.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+</head>
+<body>
+<div layout:fragment="siteContent">
+    <div class="row">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="white-box">
+                        <div class="table-responsive">
+                            <table class="table text-nowrap">
+                                <thead>
+                                <tr>
+                                    <th class="border-top-0">#</th>
+                                    <th class="border-top-0">Название</th>
+                                    <th class="border-top-0">Клиент</th>
+                                    <th class="border-top-0">Цена</th>
+                                    <th class="border-top-0">Одобрить</th>
+                                    <th class="border-top-0">Отклонить</th>
+                                </tr>
+                                </thead>
+                                <tbody id="contentBody">
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            loadProducts()
+
+            function approveProduct(id) {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("GET", "/cart/products/approve/" + id, true);
+                httRequest.setRequestHeader("Content-Type", "application/json");
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        loadProducts();
+                    }
+                };
+                httRequest.send();
+            }
+
+            function rejectProduct(id) {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("GET", "/cart/products/reject/" + id, true);
+                httRequest.setRequestHeader("Content-Type", "application/json");
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        loadProducts();
+                    }
+                };
+                httRequest.send();
+            }
+
+            function loadProducts() {
+                const httRequest = new XMLHttpRequest();
+                httRequest.open("GET", "/cart/products/status/" + 1, true);
+                httRequest.onreadystatechange = function () {
+                    if (httRequest.readyState === XMLHttpRequest.DONE && httRequest.status === 200) {
+                        let cartList = JSON.parse(httRequest.responseText);
+                        let cardContent = '';
+                        for (let i = 0; i < cartList.length; i++) {
+                            cardContent += '<tr>';
+                            cardContent += '<td>' + cartList[i].id + '</td>';
+                            cardContent += '<td>' + cartList[i].product.name + '</td>';
+                            cardContent += '<td>' + cartList[i].user.fullName + '</td>';
+                            cardContent += '<td>' + cartList[i].product.price * cartList[i].quantity + '</td>';
+                            cardContent += '<td><button class="btn btn-success" onclick="approveProduct(' + cartList[i].id + ')">Одобрить</button></td>';
+                            cardContent += '<td><button class="btn btn-danger" onclick="rejectProduct(' + cartList[i].id + ')">Отклонить</button></td>';
+                            cardContent += '</tr>';
+                        }
+                        document.getElementById("contentBody").innerHTML = cardContent;
+                    }
+                }
+                httRequest.send();
+            }
+
+        </script>
+    </div>
+</body>
+</html>
