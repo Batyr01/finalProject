@@ -42,7 +42,7 @@ CREATE TABLE t_cart
 CREATE TABLE t_users_permissions
 (
     user_id       BIGINT,
-    permission_id BIGINT,
+    permissions_id BIGINT,
     FOREIGN KEY (user_id) REFERENCES t_users (id),
-    FOREIGN KEY (permission_id) REFERENCES t_permissions (id)
+    FOREIGN KEY (permissions_id) REFERENCES t_permissions (id)
 );
